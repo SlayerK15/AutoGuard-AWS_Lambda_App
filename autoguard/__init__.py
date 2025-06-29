@@ -1,0 +1,1 @@
+# autoguard package initialization
