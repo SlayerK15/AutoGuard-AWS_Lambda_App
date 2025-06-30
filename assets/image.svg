@@ -1,36 +1,35 @@
-
 <svg width="450" height="440" viewBox="0 0 450 440" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="125" y="10" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"/>
+  <rect x="125" y="10" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"></rect>
   <text x="225" y="35" text-anchor="middle" fill="#18181B" font-size="15" font-family="Verdana">User / API (POST /scan)</text>
-  <polygon points="225,50 235,70 215,70" fill="#6366F1"/>
-  <rect x="125" y="70" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"/>
+  <polygon points="225,50 235,70 215,70" fill="#6366F1"></polygon>
+  <rect x="125" y="70" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"></rect>
   <text x="225" y="95" text-anchor="middle" fill="#18181B" font-size="15" font-family="Verdana">API Gateway</text>
-  <polygon points="225,110 235,130 215,130" fill="#6366F1"/>
-  <rect x="125" y="130" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"/>
+  <polygon points="225,110 235,130 215,130" fill="#6366F1"></polygon>
+  <rect x="125" y="130" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"></rect>
   <text x="225" y="155" text-anchor="middle" fill="#18181B" font-size="15" font-family="Verdana">Lambda (AutoGuard)</text>
-  <polygon points="225,170 255,200 195,200" fill="#6366F1"/>
-  <rect x="20" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+  <polygon points="225,170 255,200 195,200" fill="#6366F1"></polygon>
+  <rect x="20" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"></rect>
   <text x="55" y="223" text-anchor="middle" fill="#312E81" font-size="13" font-family="Verdana">EC2</text>
-  <rect x="100" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+  <rect x="100" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"></rect>
   <text x="135" y="223" text-anchor="middle" fill="#312E81" font-size="13" font-family="Verdana">S3</text>
-  <rect x="180" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+  <rect x="180" y="200" width="70" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"></rect>
   <text x="215" y="223" text-anchor="middle" fill="#312E81" font-size="13" font-family="Verdana">IAM</text>
-  <rect x="260" y="200" width="100" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+  <rect x="260" y="200" width="100" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"></rect>
   <text x="310" y="223" text-anchor="middle" fill="#312E81" font-size="13" font-family="Verdana">Compliance</text>
-  <rect x="370" y="200" width="60" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+  <rect x="370" y="200" width="60" height="35" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"></rect>
   <text x="400" y="223" text-anchor="middle" fill="#312E81" font-size="13" font-family="Verdana">Cost</text>
-  <polygon points="225,235 235,265 215,265" fill="#6366F1"/>
-  <rect x="125" y="265" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"/>
+  <polygon points="225,235 235,265 215,265" fill="#6366F1"></polygon>
+  <rect x="125" y="265" width="200" height="40" rx="10" fill="#F8FAFC" stroke="#6366F1" stroke-width="2"></rect>
   <text x="225" y="290" text-anchor="middle" fill="#18181B" font-size="15" font-family="Verdana">Audit Logger</text>
-  <line x1="225" y1="305" x2="90" y2="370" stroke="#6366F1" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <line x1="225" y1="305" x2="360" y2="370" stroke="#6366F1" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="225" y1="305" x2="90" y2="370" stroke="#6366F1" stroke-width="2" marker-end="url(#diamondhead)"></line>
+  <line x1="225" y1="305" x2="360" y2="370" stroke="#6366F1" stroke-width="2" marker-end="url(#diamondhead)"></line>
   <defs>
-    <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-      <polygon points="0 0, 6 3, 0 6" fill="#6366F1"/>
+    <marker id="diamondhead" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <polygon points="4,0 8,4 4,8 0,4" fill="#6366F1"></polygon>
     </marker>
   </defs>
-  <rect x="40" y="370" width="100" height="40" rx="10" fill="#C7D2FE" stroke="#6366F1" stroke-width="2"/>
+  <rect x="40" y="370" width="100" height="40" rx="10" fill="#C7D2FE" stroke="#6366F1" stroke-width="2"></rect>
   <text x="90" y="395" text-anchor="middle" fill="#312E81" font-size="14" font-family="Verdana">S3 Bucket</text>
-  <rect x="310" y="370" width="100" height="40" rx="10" fill="#C7D2FE" stroke="#6366F1" stroke-width="2"/>
+  <rect x="310" y="370" width="100" height="40" rx="10" fill="#C7D2FE" stroke="#6366F1" stroke-width="2"></rect>
   <text x="360" y="395" text-anchor="middle" fill="#312E81" font-size="14" font-family="Verdana">SNS → Email</text>
 </svg>

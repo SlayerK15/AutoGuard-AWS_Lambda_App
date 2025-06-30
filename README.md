@@ -117,7 +117,7 @@ When you deploy AutoGuard using the provided `Cloudfront.yml` CloudFormation tem
 ### CloudFormation Component Flow
 
 ![CloudFormation Component Flow](assets/image.svg)
-![Test SVG](assets/download.svg)
+
 
 
 ### CloudFormation Highlights
