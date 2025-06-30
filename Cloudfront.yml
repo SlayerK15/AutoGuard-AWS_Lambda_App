@@ -147,9 +147,27 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AutoGuardApi}/*/POST/scan
 
+  # --------- START: Automatic API Deployment ---------
+  AutoGuardApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref AutoGuardApi
+      Description: "Auto deployment by CloudFormation"
+    DependsOn:
+      - AutoGuardScanMethod
+
+  AutoGuardApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: prod
+      Description: "Production stage"
+      RestApiId: !Ref AutoGuardApi
+      DeploymentId: !Ref AutoGuardApiDeployment
+  # --------- END: Automatic API Deployment ---------
+
 Outputs:
   ScanApiEndpoint:
-    Description: "Invoke URL for the /scan endpoint (add '/prod/scan' after initial deploy)"
+    Description: "Invoke URL for the /scan endpoint"
     Value: !Sub "https://${AutoGuardApi}.execute-api.${AWS::Region}.amazonaws.com/prod/scan"
   LambdaFunctionName:
     Description: "Lambda function name"
