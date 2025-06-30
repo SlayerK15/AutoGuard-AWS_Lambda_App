@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Deploy AutoGuard Lambda scanner with API Gateway, SNS notification, and S3 audit logs.
+
+Parameters:
+  UserEmail:
+    Type: String
+    Description: Email address for SNS notifications
+
+Resources:
+  # SNS topic for notifications
+  ScanAlertSNSTopic:
+    Type: AWS::SNS::Topic
+
+  ScanAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref ScanAlertSNSTopic
+      Protocol: email
+      Endpoint: !Ref UserEmail
+
+  # Audit logs S3 bucket (globally unique)
+  AuditLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub autoguard-audit-logs-${AWS::AccountId}-${AWS::Region}
+
+  # IAM Role for Lambda (uses your provided policy)
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: autoguard-lambda-execution-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: autoguard-lambda-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeNatGateways
+                  - ec2:StopInstances
+                  - ec2:DeleteVolume
+                  - ec2:DeleteNatGateway
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketAcl
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - iam:ListUsers
+                  - iam:GetUser
+                  - iam:ListPolicies
+                  - iam:DeletePolicy
+                  - sns:Publish
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:ListAttachedUserPolicies
+                  - iam:DetachUserPolicy
+                  - iam:ListUserPolicies
+                  - iam:DeleteUserPolicy
+                  - iam:ListAccessKeys
+                  - iam:DeleteAccessKey
+                  - iam:DeleteLoginProfile
+                  - iam:ListMFADevices
+                  - iam:DeactivateMFADevice
+                  - iam:DeleteVirtualMFADevice
+                  - iam:DeleteUser
+                Resource: arn:aws:iam::*:user/*
+              - Effect: Allow
+                Action:
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicyVersion
+                  - iam:ListEntitiesForPolicy
+                  - iam:DetachUserPolicy
+                  - iam:DetachRolePolicy
+                  - iam:DetachGroupPolicy
+                Resource: arn:aws:iam::*:policy/*
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::autoguard-audit-logs-${AWS::AccountId}-${AWS::Region}
+                  - !Sub arn:aws:s3:::autoguard-audit-logs-${AWS::AccountId}-${AWS::Region}/*
+
+  # Lambda Function
+  AutoGuardFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: autoguard-scan-lambda
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Handler: lambda_handler.lambda_handler
+      Runtime: python3.13
+      Code:
+        S3Bucket: autogaurd
+        S3Key: autoguard_lambda.zip
+      Timeout: 900
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref ScanAlertSNSTopic
+          AUDIT_S3_BUCKET: !Ref AuditLogsBucket
+
+  # API Gateway Rest API
+  AutoGuardApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: AutoGuardApi
+
+  # API Gateway Resource: /scan
+  AutoGuardScanResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AutoGuardApi
+      ParentId: !GetAtt AutoGuardApi.RootResourceId
+      PathPart: scan
+
+  # API Gateway Method: POST /scan
+  AutoGuardScanMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AutoGuardApi
+      ResourceId: !Ref AutoGuardScanResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - { LambdaArn: !GetAtt AutoGuardFunction.Arn }
+
+  # Lambda permission for API Gateway
+  LambdaApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AutoGuardFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AutoGuardApi}/*/POST/scan
+
+  # --------- START: Automatic API Deployment ---------
+  AutoGuardApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref AutoGuardApi
+      Description: "Auto deployment by CloudFormation"
+    DependsOn:
+      - AutoGuardScanMethod
+
+  AutoGuardApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: prod
+      Description: "Production stage"
+      RestApiId: !Ref AutoGuardApi
+      DeploymentId: !Ref AutoGuardApiDeployment
+  # --------- END: Automatic API Deployment ---------
+
+Outputs:
+  ScanApiEndpoint:
+    Description: "Invoke URL for the /scan endpoint"
+    Value: !Sub "https://${AutoGuardApi}.execute-api.${AWS::Region}.amazonaws.com/prod/scan"
+  LambdaFunctionName:
+    Description: "Lambda function name"
+    Value: !Ref AutoGuardFunction
+  SNSArn:
+    Description: "SNS Topic ARN"
+    Value: !Ref ScanAlertSNSTopic
+  AuditLogsBucketName:
+    Description: "Audit S3 bucket"
+    Value: !Ref AuditLogsBucket
