@@ -33,10 +33,10 @@
             fetch(API_ENDPOINT, { method: 'POST' })
                 .then(resp => {
                     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                    return resp.text();
+                    return resp.json();
                 })
-                .then(() => {
-                    document.getElementById('status').textContent = 'Scan triggered. Check your email for results.';
+                .then(data => {
+                    document.getElementById('status').textContent = 'Scan complete. Summary: ' + JSON.stringify(data.summary);
                 })
                 .catch(err => {
                     document.getElementById('status').textContent = 'Error: ' + err;

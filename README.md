@@ -20,6 +20,7 @@
 * **AI-Based Monitoring**: Simple anomaly detection to trigger auto-scaling.
 * **Slack & Webhook Alerts**: Receive notifications in chat or custom systems.
 * **Scheduled Scans**: CloudWatch Events trigger periodic executions.
+* **Immediate HTTP Results**: The `/scan` API responds with a JSON summary when the run completes.
 
 ---
 
@@ -67,8 +68,8 @@ This script calls CloudFormation to create the stack defined in
 
 * **Scans are triggered by sending a POST request to the `/scan` API endpoint.**
 * You can use a REST client like Postman or cURL, or open `static/index.html` in your browser and click **Run Scan** after setting your API endpoint.
-* When you trigger a scan, the HTTP response will typically show a **timeout error**. This is expected for long-running Lambda functions and does **not** mean the scan failed.
-* **Results and detailed scan reports are sent to your configured email via SNS, not via the HTTP response.**
+* When you trigger a scan, the Lambda function runs to completion and the API returns a JSON **summary** of the findings.
+* A full HTML report with remediation details is still uploaded to S3 and emailed via SNS for reference.
 
 **Example:**
 
@@ -111,6 +112,16 @@ curl -X POST https://your-api-id.execute-api.region.amazonaws.com/prod/scan
 **How it works:**
 When AutoGuard is triggered by a POST API call, API Gateway routes the request to Lambda. Lambda uses modular handlers to scan AWS resources, attempts auto-remediation, logs results, and sends a detailed report to your email via SNS.
 All infrastructure is created automatically with the CloudFormation template.
+
+---
+
+### End-to-End Workflow
+
+1. **Deploy** AutoGuard using `scripts/deploy_stack.py` or the CloudFormation console.
+2. **Trigger** a scan via `curl` or the simple web UI in `static/index.html`.
+3. **Scanning & Remediation**: Lambda scans EC2, S3, IAM, cost and compliance across all configured accounts, performs auto-remediation where possible and logs everything to S3.
+4. **AI Monitoring & Auto-Scaling** watches for anomalies and scales the scanning Lambda if needed.
+5. **Results**: A JSON summary is returned immediately in the API response. A detailed HTML report is uploaded to S3, emailed via SNS, and viewable in `static/dashboard.html`.
 
 ---
 
@@ -226,8 +237,8 @@ autoguard-aws_lambda_app/
 | Built-in scheduler (CloudWatch Events trigger)                    | ✅           |
 | Can trigger scan via browser                                                                      | ✅           |
 | Can trigger scan via REST client (Postman/cURL)                                                   | ✅           |
-| Immediate HTTP scan results in response                                                           | ❌           |
-| Results/reports delivered by email (SNS)                                                          | ✅           |
+| Immediate HTTP scan results in response                    | ✅           |
+| Results/reports delivered by email (SNS)                    | ✅           |
 
 ---
 
