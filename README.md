@@ -12,6 +12,7 @@
 * **Audit Logging & Reporting**: All actions and findings are logged for compliance and sent as detailed email reports via SNS.
 * **Cloud Native**: Deploys quickly with CloudFormation.
 * **Cost Awareness**: Built-in cost scan/handler to identify waste.
+* **Minimal Browser Interface**: Trigger scans via the provided `static/index.html` page.
 
 ---
 
@@ -48,8 +49,8 @@ There are **two ways to deploy and use AutoGuard**:
 
 ## 🚦 Triggering a Scan & Usage Limitations
 
-* **Scans are only triggered by sending a POST request to the `/scan` API endpoint.**
-* **You must use a REST client like Postman or cURL**. Triggering via a browser is not supported.
+* **Scans are triggered by sending a POST request to the `/scan` API endpoint.**
+* You can use a REST client like Postman or cURL, or open `static/index.html` in your browser and click **Run Scan** after setting your API endpoint.
 * When you trigger a scan, the HTTP response will typically show a **timeout error**. This is expected for long-running Lambda functions and does **not** mean the scan failed.
 * **Results and detailed scan reports are sent to your configured email via SNS, not via the HTTP response.**
 
@@ -197,8 +198,8 @@ autoguard-aws_lambda_app/
 | Auto-remediation for common issues                                                                | ✅           |
 | Audit logging and reporting with email via SNS                                                    | ✅           |
 | Automated deployment with CloudFormation                                                          | ✅           |
-| Static webpage: explaining the solution and assisting with direct AWS scans                       | ❌           |
-| UI/UX for the scan trigger (web or minimal interface)                                             | ❌           |
+| Static webpage: explaining the solution and assisting with direct AWS scans                       | ✅           |
+| UI/UX for the scan trigger (web or minimal interface)                     | ✅           |
 | Automating CloudFormation deployment with little/no manual interaction                            | ❌           |
 | Enhanced security and compliance checks (full CIS coverage, custom rules, etc.)                   | ❌ (partial) |
 | SNS template modification: include a detailed web report (e.g., unverified IPs, unused IAM, etc.) | ❌           |
@@ -207,7 +208,7 @@ autoguard-aws_lambda_app/
 | AI integration: advanced security monitoring & auto-scaling/reactive actions                      | ❌           |
 | Slack and webhook alert integrations                                                              | ❌           |
 | Built-in scheduler (CloudWatch Events trigger)                                                    | ❌           |
-| Can trigger scan via browser                                                                      | ❌           |
+| Can trigger scan via browser                                                                      | ✅           |
 | Can trigger scan via REST client (Postman/cURL)                                                   | ✅           |
 | Immediate HTTP scan results in response                                                           | ❌           |
 | Results/reports delivered by email (SNS)                                                          | ✅           |
@@ -219,7 +220,7 @@ autoguard-aws_lambda_app/
 * **Slack and webhook alert integrations**: Not yet implemented due to time constraints.
 * **Web UI/UX, dashboard, advanced compliance and AI features**: Planned for future work.
 * **Built-in scheduling via CloudWatch Events**: Not available in current release.
-* **API endpoint cannot be triggered via browser, only via REST client.**
+* **A minimal web UI is available in `static/index.html` for triggering scans in the browser.**
 
 ---
 
