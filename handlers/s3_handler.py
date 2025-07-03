@@ -1,7 +1,8 @@
 import boto3
 
-def scan_public_s3(region):
-    s3 = boto3.client('s3', region_name=region)
+def scan_public_s3(region, session=None):
+    session = session or boto3.Session()
+    s3 = session.client('s3', region_name=region)
     buckets = s3.list_buckets()
     public_buckets = []
     for bucket in buckets['Buckets']:
@@ -11,8 +12,9 @@ def scan_public_s3(region):
                 public_buckets.append({"type": "S3_PUBLIC", "bucket": bucket['Name']})
     return public_buckets
 
-def restrict_s3(issue, region):
-    s3 = boto3.client('s3', region_name=region)
+def restrict_s3(issue, region, session=None):
+    session = session or boto3.Session()
+    s3 = session.client('s3', region_name=region)
     s3.put_public_access_block(
         Bucket=issue['bucket'],
         PublicAccessBlockConfiguration={

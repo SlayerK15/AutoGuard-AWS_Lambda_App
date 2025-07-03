@@ -1,8 +1,9 @@
 import boto3
 
 
-def _check_root_mfa():
-    iam = boto3.client("iam")
+def _check_root_mfa(session=None):
+    session = session or boto3.Session()
+    iam = session.client("iam")
     summary = iam.get_account_summary().get("SummaryMap", {})
     if summary.get("AccountMFAEnabled", 0) == 0:
         return {
@@ -13,8 +14,9 @@ def _check_root_mfa():
     return None
 
 
-def _check_s3_encryption(region):
-    s3 = boto3.client("s3", region_name=region)
+def _check_s3_encryption(region, session=None):
+    session = session or boto3.Session()
+    s3 = session.client("s3", region_name=region)
     findings = []
     for bucket in s3.list_buckets().get("Buckets", []):
         name = bucket["Name"]
@@ -33,11 +35,11 @@ def _check_s3_encryption(region):
     return findings
 
 
-def check_cis_benchmarks(region):
+def check_cis_benchmarks(region, session=None):
     violations = []
-    root_check = _check_root_mfa()
+    root_check = _check_root_mfa(session)
     if root_check:
         root_check["region"] = region
         violations.append(root_check)
-    violations.extend(_check_s3_encryption(region))
+    violations.extend(_check_s3_encryption(region, session))
     return violations

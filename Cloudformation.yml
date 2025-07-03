@@ -163,6 +163,23 @@ Resources:
       Description: "Production stage"
       RestApiId: !Ref AutoGuardApi
       DeploymentId: !Ref AutoGuardApiDeployment
+
+  # CloudWatch Events rule for scheduled scans
+  ScanScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: rate(1 day)
+      Targets:
+        - Arn: !GetAtt AutoGuardFunction.Arn
+          Id: AutoGuardTarget
+
+  LambdaSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AutoGuardFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ScanScheduleRule.Arn
   # --------- END: Automatic API Deployment ---------
 
 Outputs:

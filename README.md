@@ -14,6 +14,12 @@
 * **Cost Awareness**: Built-in cost scan/handler to identify waste.
 * **Minimal Browser Interface**: Trigger scans via the provided `static/index.html` page.
 * **Enhanced Compliance Checks**: Includes root account MFA and S3 encryption validation for CIS coverage.
+* **Detailed Web Reports**: Uploads scan results to S3 and shares a link via SNS.
+* **Web Dashboard**: View reports in `static/dashboard.html`.
+* **Organization-Wide Scanning**: Optional multi-account scans via AWS Organizations.
+* **AI-Based Monitoring**: Simple anomaly detection to trigger auto-scaling.
+* **Slack & Webhook Alerts**: Receive notifications in chat or custom systems.
+* **Scheduled Scans**: CloudWatch Events trigger periodic executions.
 
 ---
 
@@ -212,12 +218,12 @@ autoguard-aws_lambda_app/
 | UI/UX for the scan trigger (web or minimal interface)                     | ✅           |
 | Automating CloudFormation deployment with little/no manual interaction                            | ✅           |
 | Enhanced security and compliance checks (full CIS coverage, custom rules, etc.)                   | ✅ (partial) |
-| SNS template modification: include a detailed web report (e.g., unverified IPs, unused IAM, etc.) | ❌           |
-| Web-based dashboard for extended reporting                                                        | ❌           |
-| Multi-account and AWS Organization-wide scanning                                                  | ❌           |
-| AI integration: advanced security monitoring & auto-scaling/reactive actions                      | ❌           |
-| Slack and webhook alert integrations                                                              | ❌           |
-| Built-in scheduler (CloudWatch Events trigger)                                                    | ❌           |
+| SNS template modification: include a detailed web report (e.g., unverified IPs, unused IAM, etc.) | ✅           |
+| Web-based dashboard for extended reporting                    | ✅           |
+| Multi-account and AWS Organization-wide scanning                    | ✅           |
+| AI integration: advanced security monitoring & auto-scaling/reactive actions                      | ✅ (basic)   |
+| Slack and webhook alert integrations                    | ✅           |
+| Built-in scheduler (CloudWatch Events trigger)                    | ✅           |
 | Can trigger scan via browser                                                                      | ✅           |
 | Can trigger scan via REST client (Postman/cURL)                                                   | ✅           |
 | Immediate HTTP scan results in response                                                           | ❌           |
@@ -227,9 +233,9 @@ autoguard-aws_lambda_app/
 
 ### Notes
 
-* **Slack and webhook alert integrations**: Not yet implemented due to time constraints.
-* **Web UI/UX, dashboard, advanced compliance and AI features**: Planned for future work.
-* **Built-in scheduling via CloudWatch Events**: Not available in current release.
+* **Slack and webhook alert integrations**: Configurable via environment variables.
+* **Dashboard and AI features**: Basic reporting dashboard in `static/dashboard.html` with simple anomaly detection.
+* **Built-in scheduling via CloudWatch Events**: Enabled by default through the CloudFormation template.
 * **A minimal web UI is available in `static/index.html` for triggering scans in the browser.**
 * **Run `scripts/deploy_stack.py` for one-command CloudFormation deployment.**
 
