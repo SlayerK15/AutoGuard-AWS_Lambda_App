@@ -13,6 +13,7 @@
 * **Cloud Native**: Deploys quickly with CloudFormation.
 * **Cost Awareness**: Built-in cost scan/handler to identify waste.
 * **Minimal Browser Interface**: Trigger scans via the provided `static/index.html` page.
+* **Enhanced Compliance Checks**: Includes root account MFA and S3 encryption validation for CIS coverage.
 
 ---
 
@@ -34,8 +35,17 @@ There are **two ways to deploy and use AutoGuard**:
 
 ### 2. Using the CloudFormation Template (Recommended)
 
-* Use the provided `Cloudfront.yml` CloudFormation template.
-* **Automatically creates and connects:**
+You can deploy the entire stack with one command using the helper script
+`scripts/deploy_stack.py`:
+
+```bash
+python3 scripts/deploy_stack.py you@example.com
+```
+
+This script calls CloudFormation to create the stack defined in
+`Cloudformation.yml` and waits for it to finish.
+
+* Alternatively, you can deploy the template manually. It automatically creates and connects:
 
   * Lambda function
   * API Gateway (with all stages and endpoints)
@@ -200,8 +210,8 @@ autoguard-aws_lambda_app/
 | Automated deployment with CloudFormation                                                          | ✅           |
 | Static webpage: explaining the solution and assisting with direct AWS scans                       | ✅           |
 | UI/UX for the scan trigger (web or minimal interface)                     | ✅           |
-| Automating CloudFormation deployment with little/no manual interaction                            | ❌           |
-| Enhanced security and compliance checks (full CIS coverage, custom rules, etc.)                   | ❌ (partial) |
+| Automating CloudFormation deployment with little/no manual interaction                            | ✅           |
+| Enhanced security and compliance checks (full CIS coverage, custom rules, etc.)                   | ✅ (partial) |
 | SNS template modification: include a detailed web report (e.g., unverified IPs, unused IAM, etc.) | ❌           |
 | Web-based dashboard for extended reporting                                                        | ❌           |
 | Multi-account and AWS Organization-wide scanning                                                  | ❌           |
@@ -221,6 +231,7 @@ autoguard-aws_lambda_app/
 * **Web UI/UX, dashboard, advanced compliance and AI features**: Planned for future work.
 * **Built-in scheduling via CloudWatch Events**: Not available in current release.
 * **A minimal web UI is available in `static/index.html` for triggering scans in the browser.**
+* **Run `scripts/deploy_stack.py` for one-command CloudFormation deployment.**
 
 ---
 
