@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoGuard Security Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        h1 { color: #2c3e50; }
+        button { padding: 0.5rem 1rem; font-size: 1rem; }
+        #status { margin-top: 1rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>AutoGuard Security Scanner</h1>
+    <p>
+        AutoGuard is a serverless AWS security tool that scans your resources for
+        misconfigurations, compliance gaps, and unused assets. It automatically
+        attempts remediation and emails detailed reports using SNS.
+    </p>
+    <p>
+        To run a scan, deploy AutoGuard using the provided CloudFormation
+        template. Then update the <code>API_ENDPOINT</code> variable below with
+        your API Gateway URL and click <strong>Run Scan</strong>.
+    </p>
+    <button id="scanBtn">Run Scan</button>
+    <div id="status"></div>
+
+    <script>
+        const API_ENDPOINT = 'https://replace-with-your-api-id.execute-api.region.amazonaws.com/prod/scan';
+        document.getElementById('scanBtn').addEventListener('click', () => {
+            document.getElementById('status').textContent = 'Starting scan...';
+            fetch(API_ENDPOINT, { method: 'POST' })
+                .then(resp => {
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    return resp.json();
+                })
+                .then(data => {
+                    document.getElementById('status').textContent = 'Scan complete. Summary: ' + JSON.stringify(data.summary);
+                })
+                .catch(err => {
+                    document.getElementById('status').textContent = 'Error: ' + err;
+                });
+        });
+    </script>
+</body>
+</html>

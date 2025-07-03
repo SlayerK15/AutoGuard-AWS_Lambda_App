@@ -10,3 +10,6 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 AUDIT_S3_BUCKET = os.getenv("AUDIT_S3_BUCKET")
 WHITELIST = os.getenv("WHITELIST", "").split(",")
+TARGET_ACCOUNTS = os.getenv("TARGET_ACCOUNTS", "")
+ORGANIZATION_WIDE = os.getenv("ORGANIZATION_WIDE", "false").lower() == "true"
+ORG_ROLE_NAME = os.getenv("ORG_ROLE_NAME", "OrganizationAccountAccessRole")

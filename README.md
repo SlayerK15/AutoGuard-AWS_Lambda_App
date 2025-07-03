@@ -1,233 +1,109 @@
-# 🚨 AutoGuard: AWS Lambda Security Scanner & Auto-Remediation
+# AutoGuard - AWS Lambda Security Scanner
 
-**AutoGuard** is a serverless AWS security and compliance tool that scans your cloud resources for misconfigurations, compliance gaps, and cost anomalies. It automatically detects and remediates common issues, sending you alerts and reports—all powered by AWS Lambda for zero-ops, always-on security.
+**AutoGuard** is a serverless application that scans your AWS environment for security issues, attempts simple remediation, and emails you a report. It runs entirely in AWS Lambda so there are no servers to manage.
 
----
+## Features
 
-## 🌟 Features
+- **Multi-Resource Scanning** for EC2, S3, IAM, cost anomalies and basic compliance.
+- **Auto-Remediation** of common problems (public S3 buckets, unused IAM users, idle NAT gateways, etc.).
+- **Organization-wide Support** with optional cross-account scanning.
+- **Immediate Results** – the `/scan` API returns a JSON summary when the scan finishes.
+- **Detailed Reporting** uploaded to S3 and sent through SNS email. A dashboard page lets you view any report by URL.
+- **Slack & Custom Webhook Alerts** via environment variables.
+- **Scheduled Scans** using CloudWatch Events.
+- **AI-based Monitoring** detects anomalies and automatically scales the Lambda concurrency.
 
-* **Multi-Resource Scanning**: Checks EC2, S3, IAM, compliance, and cost.
-* **Auto-Remediation**: Automatically fixes common security/config issues.
-* **Modular Handlers**: Easily extend with your own resource handlers.
-* **Audit Logging & Reporting**: All actions and findings are logged for compliance and sent as detailed email reports via SNS.
-* **Cloud Native**: Deploys quickly with CloudFormation.
-* **Cost Awareness**: Built-in cost scan/handler to identify waste.
+## How It Works
 
----
+1. **Trigger a Scan:** Send a POST request to the `/scan` endpoint or click **Run Scan** in `static/index.html`.
+2. **Scanning:** Lambda invokes modular handlers that look for misconfigurations, compliance issues and unused resources across all selected accounts and regions.
+3. **Auto-Remediation:** The fixer module attempts to remedy issues such as public S3 buckets or idle EC2 instances.
+4. **Reporting:** A summary is returned in the HTTP response. A full HTML report is generated and stored in S3, then an email is sent through SNS with the link. Optional Slack and webhook notifications are also sent.
+5. **Audit Logs & AI:** Every scan is logged to S3. Issue counts are analysed; if anomalies are found the Lambda concurrency is scaled up automatically.
 
-## 🛠️ How It Works
+The architecture is completely provisioned through CloudFormation. A helper script `scripts/deploy_stack.py` creates the stack with minimal interaction, including the API Gateway, Lambda function, SNS topic and CloudWatch Events rule.
 
-There are **two ways to deploy and use AutoGuard**:
+![Architecture Diagram](assets/image.svg)
 
-### 1. Using the Zip File (Manual Setup)
+## Quick Start
 
-* Download or build `Autoguard.zip`, which contains all dependencies and code.
-* Upload this ZIP as a new AWS Lambda function via the AWS Console.
-* **Manually** set up:
+1. **Deploy** using the helper script (requires AWS credentials configured):
+   ```bash
+   python3 scripts/deploy_stack.py you@example.com
+   ```
+   This creates the stack defined in `Cloudformation.yml` and subscribes the specified email to SNS notifications.
+2. **Update** the `API_ENDPOINT` variable in `static/index.html` with the URL output by the stack.
+3. **Run a Scan** either with `curl`:
+   ```bash
+   curl -X POST https://your-api-id.execute-api.region.amazonaws.com/prod/scan
+   ```
+   or open `static/index.html` in your browser and click **Run Scan**.
+4. **Check Your Email** for the detailed report, or open `static/dashboard.html` and paste the S3 URL provided in the email.
 
-  * API Gateway endpoints
-  * SNS notification topics/subscriptions
-  * Lambda environment variables
-  * IAM roles and permissions
-* This is good for testing or customizing code, but **requires manual AWS resource configuration**.
+## Environment Variables
 
-### 2. Using the CloudFormation Template (Recommended)
+The Lambda function reads the following variables (configured automatically by the template):
 
-* Use the provided `Cloudfront.yml` CloudFormation template.
-* **Automatically creates and connects:**
+| Variable            | Description                                     |
+|---------------------|-------------------------------------------------|
+| `SNS_TOPIC_ARN`     | SNS topic used for email notifications          |
+| `AUDIT_S3_BUCKET`   | S3 bucket for audit logs and HTML reports       |
+| `SLACK_WEBHOOK_URL` | Optional Slack incoming webhook for alerts      |
+| `WEBHOOK_URL`       | Optional generic webhook for alerts             |
+| `TARGET_ACCOUNTS`   | Comma-separated account IDs for multi-account   |
+| `ORGANIZATION_WIDE` | `true` to scan all accounts in the organization |
+| `ORG_ROLE_NAME`     | IAM role name for cross-account access          |
 
-  * Lambda function
-  * API Gateway (with all stages and endpoints)
-  * SNS topics and subscriptions (for email reporting)
-  * Audit logs S3 bucket
-  * Environment variables, IAM roles, permissions
-  * All other required AWS infrastructure
-* **Best for production and quick, error-free setup.**
+A sample `.env` file is included for local testing.
 
----
-
-## 🚦 Triggering a Scan & Usage Limitations
-
-* **Scans are only triggered by sending a POST request to the `/scan` API endpoint.**
-* **You must use a REST client like Postman or cURL**. Triggering via a browser is not supported.
-* When you trigger a scan, the HTTP response will typically show a **timeout error**. This is expected for long-running Lambda functions and does **not** mean the scan failed.
-* **Results and detailed scan reports are sent to your configured email via SNS, not via the HTTP response.**
-
-**Example:**
-
-```sh
-curl -X POST https://your-api-id.execute-api.region.amazonaws.com/prod/scan
-```
-
----
-
-## 🖼️ Deployment & Architecture Diagram
-
-```plaintext
-+--------------------------+
-| User / API (POST /scan)  |
-+-----------+--------------+
-            |
-            v
-     +-------------+
-     | API Gateway |
-     +-------------+
-            |
-            v
-  +---------------------+
-  | Lambda (AutoGuard)  |
-  +---------------------+
-            |
-  +---------+---------+---------+--------+--------+
-  |         |         |         |        |        |
-[EC2]     [S3]     [IAM]  [Compliance] [Cost]
-            |
-            v
-     +---------------------+
-     |    Audit Logger     |
-     +---------------------+
-        |             |
-        v             v
-   S3 Bucket     SNS → Email
-```
-
-**How it works:**
-When AutoGuard is triggered by a POST API call, API Gateway routes the request to Lambda. Lambda uses modular handlers to scan AWS resources, attempts auto-remediation, logs results, and sends a detailed report to your email via SNS.
-All infrastructure is created automatically with the CloudFormation template.
-
----
-
-## 🧩 CloudFormation Stack Logic
-
-When you deploy AutoGuard using the provided `Cloudfront.yml` CloudFormation template, **all necessary AWS resources are created and connected automatically**. Here’s how it works:
-
-### What Gets Created
-
-* **API Gateway Endpoint**
-  Exposes a REST API endpoint (`/scan`) for triggering the Lambda scan.
-* **Lambda Function**
-  The core of AutoGuard for scanning, remediation, logging, and notifications.
-* **SNS Topic and Email Subscription**
-  For sending detailed reports to your provided email.
-* **Audit Logs S3 Bucket**
-  Stores audit logs of every scan and remediation.
-* **IAM Role and Permissions**
-  Grants Lambda access to necessary AWS services.
-
-### CloudFormation Component Flow
-
-![CloudFormation Component Flow](assets/image.svg)
-
-
-
-### CloudFormation Highlights
-
-* **AWSTemplateFormatVersion:** Uses the standard CloudFormation version for AWS resources.
-* **Parameters:** Accepts your email address (`UserEmail`) for report delivery.
-* **Resources Created:**
-
-  * SNS topic and email subscription for notifications
-  * Audit S3 bucket for logs
-  * IAM role and policies for Lambda execution
-  * Lambda function with environment variables for SNS and S3
-  * API Gateway with `/scan` endpoint (POST method)
-  * Permissions for API Gateway to invoke Lambda
-  * Automatic deployment of the API to a production stage
-
-### Outputs
-
-After stack creation, CloudFormation outputs:
-
-* The `/scan` API endpoint URL for triggering scans
-* Lambda function name
-* SNS Topic ARN (for notifications)
-* Audit S3 bucket name
-
-**This stack ensures you have a ready-to-use, fully connected scanning system with a single deployment command and minimal setup.**
-
----
-
-## 🗂️ Project Structure
+## Project Layout
 
 ```
 autoguard-aws_lambda_app/
-├── audit/
-│   └── logger.py
-├── autoguard/
-│   ├── __init__.py
-│   ├── config.py
-│   ├── fixer.py
-│   ├── reporter.py
-│   └── scanner.py
-├── handlers/
-│   ├── compliance_handler.py
-│   ├── cost_handler.py
-│   ├── ec2_handler.py
-│   ├── iam_handler.py
-│   └── s3_handler.py
-├── integrations/
-│   ├── slack_notifier.py         # (Planned/future)
-│   └── webhook_notifier.py       # (Planned/future)
-├── .env
-├── Autoguard.zip
-├── Cloudfront.yml
-├── lambda_handler.py
-├── requirements.txt
-└── README.md
+├── autoguard/            # scanning, fixing and reporting modules
+├── handlers/             # resource-specific handlers
+├── ai/                   # anomaly detection utilities
+├── audit/                # audit log helper
+├── integrations/         # Slack and generic webhook modules
+├── static/               # minimal web UI and dashboard
+├── scripts/              # deployment helper
+├── Cloudformation.yml    # infrastructure template
+└── lambda_handler.py     # Lambda entry point
 ```
 
----
+## Development
 
-## ✅ What Was Achieved
+1. Install dependencies:
+   ```bash
+   python3 -m pip install -r requirements.txt
+   ```
+2. Lint/compile:
+   ```bash
+   python3 -m py_compile $(git ls-files '*.py')
+   ```
+3. Run tests (none yet):
+   ```bash
+   pytest -q
+   ```
 
-* Core Lambda function to scan EC2, S3, IAM, compliance, and cost.
-* Modular handler system for easy extensibility.
-* Working auto-remediation for common security issues (S3, IAM).
-* Audit logging and reporting using SNS (email).
-* Automated deployment with CloudFormation.
+## Feature Status
 
----
+| Feature/Idea                                                         | Status     |
+|----------------------------------------------------------------------|-----------|
+| Core AWS resource scanning (EC2, S3, IAM, cost, compliance)          | ✅        |
+| Modular handler architecture                                         | ✅        |
+| Auto-remediation for common issues                                   | ✅        |
+| Audit logging and reporting with email via SNS                       | ✅        |
+| Automated deployment with CloudFormation                             | ✅        |
+| Static webpage and minimal UI to trigger scans                       | ✅        |
+| Multi-account and organization-wide scanning                         | ✅        |
+| Enhanced security and compliance checks (partial CIS)                | ✅        |
+| SNS template with detailed web report                                | ✅        |
+| Web dashboard for extended reporting                                 | ✅        |
+| AI integration for monitoring and auto-scaling                       | ✅ basic  |
+| Slack and webhook alert integrations                                 | ✅        |
+| Built-in scheduler via CloudWatch Events                             | ✅        |
+| Immediate HTTP scan results                                          | ✅        |
 
-## 💡 Plans & Ideas To Achieve
+AutoGuard aims to provide hands-off, always-on security scanning for your AWS accounts. Feel free to extend the handlers or reporting modules to customize the tool for your environment.
 
-| Feature/Idea                                                                                      | Achieved    |
-| ------------------------------------------------------------------------------------------------- | ----------- |
-| Core AWS resource scanning (EC2, S3, IAM, cost, compliance)                                       | ✅           |
-| Modular handler architecture                                                                      | ✅           |
-| Auto-remediation for common issues                                                                | ✅           |
-| Audit logging and reporting with email via SNS                                                    | ✅           |
-| Automated deployment with CloudFormation                                                          | ✅           |
-| Static webpage: explaining the solution and assisting with direct AWS scans                       | ❌           |
-| UI/UX for the scan trigger (web or minimal interface)                                             | ❌           |
-| Automating CloudFormation deployment with little/no manual interaction                            | ❌           |
-| Enhanced security and compliance checks (full CIS coverage, custom rules, etc.)                   | ❌ (partial) |
-| SNS template modification: include a detailed web report (e.g., unverified IPs, unused IAM, etc.) | ❌           |
-| Web-based dashboard for extended reporting                                                        | ❌           |
-| Multi-account and AWS Organization-wide scanning                                                  | ❌           |
-| AI integration: advanced security monitoring & auto-scaling/reactive actions                      | ❌           |
-| Slack and webhook alert integrations                                                              | ❌           |
-| Built-in scheduler (CloudWatch Events trigger)                                                    | ❌           |
-| Can trigger scan via browser                                                                      | ❌           |
-| Can trigger scan via REST client (Postman/cURL)                                                   | ✅           |
-| Immediate HTTP scan results in response                                                           | ❌           |
-| Results/reports delivered by email (SNS)                                                          | ✅           |
-
----
-
-### Notes
-
-* **Slack and webhook alert integrations**: Not yet implemented due to time constraints.
-* **Web UI/UX, dashboard, advanced compliance and AI features**: Planned for future work.
-* **Built-in scheduling via CloudWatch Events**: Not available in current release.
-* **API endpoint cannot be triggered via browser, only via REST client.**
-
----
-
-## 🏗️ Original Plan vs. Final Implementation
-
-* **Original Plan:**
-  Support for all major AWS services, web-based dashboard, multi-account scanning, advanced compliance frameworks, extensive integrations, AI-driven security monitoring, and minimal setup friction.
-* **Final Implementation:**
-  Focused on core resource types (EC2, S3, IAM), modularity, production-ready remediation for the most critical findings, and reliable, serverless deployment with email reporting.
-
----

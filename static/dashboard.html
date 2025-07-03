@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>AutoGuard Dashboard</title>
+</head>
+<body>
+<h1>AutoGuard Report Dashboard</h1>
+<p>Paste your S3 report URL below to view the report.</p>
+<input id="url" type="text" style="width:80%" placeholder="https://bucket.s3.amazonaws.com/report.html" />
+<button onclick="loadReport()">Load Report</button>
+<iframe id="frame" style="width:100%; height:600px; border:1px solid #ccc"></iframe>
+<script>
+function loadReport(){
+  document.getElementById('frame').src = document.getElementById('url').value;
+}
+</script>
+</body>
+</html>
